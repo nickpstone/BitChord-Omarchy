@@ -1,3 +1,22 @@
+# BitChord for Omarchy
+
+A Linux desktop music app for Omarchy, built from BitChord’s existing Compose Desktop client. Runs as a standalone JVM application through XWayland; no Android emulator, SDK, browser wrapper, or system Java runtime is needed to run the installed build.
+
+```bash
+# Build prerequisites on Omarchy
+sudo pacman -S --needed jdk21-openjdk cmake gcc ninja
+
+# Build, test, and install for the current user
+./scripts/omarchy setup
+
+# Launch
+~/.local/bin/bitchord
+```
+
+See [OMARCHY.md](OMARCHY.md) for installation, development, media controls, and troubleshooting. The original Android source remains available in `app/`; this fork builds desktop targets by default through the Omarchy script.
+
+---
+
 <div align="center">
 
 <br/>

@@ -31,14 +31,17 @@ val CMP_DESKTOP =
 
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
-    id("com.android.library")
+    id("com.android.library") apply false
     id("org.jetbrains.compose")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization")
 }
 
+val enableAndroid = gradle.extra["bitchord.android"] as Boolean
+if (enableAndroid) apply(plugin = "com.android.library")
+
 kotlin {
-    androidTarget {
+    if (enableAndroid) androidTarget {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
         }
@@ -62,7 +65,7 @@ kotlin {
         val jvmSharedMain by creating {
             dependsOn(commonMain.get())
         }
-        androidMain.get().dependsOn(jvmSharedMain)
+        if (enableAndroid) androidMain.get().dependsOn(jvmSharedMain)
         jvmMain.get().dependsOn(jvmSharedMain)
 
         commonMain.dependencies {
@@ -92,7 +95,7 @@ kotlin {
             implementation(kotlin("test"))
             implementation("junit:junit:4.13.2")
         }
-        androidMain.dependencies {
+        if (enableAndroid) androidMain.dependencies {
             // The phone's own versions, so nothing here moves them.
             implementation("androidx.activity:activity-compose:1.9.3")
             implementation("androidx.core:core-ktx:1.15.0")
@@ -102,7 +105,7 @@ kotlin {
     }
 }
 
-android {
+if (enableAndroid) extensions.configure<com.android.build.gradle.LibraryExtension> {
     namespace = "com.music.bitchord.sharedui"
     compileSdk = 36
     defaultConfig {

@@ -499,6 +499,7 @@ compose.desktop {
         jvmArgs("-Xmx512m")
         jvmArgs("-XX:+UseG1GC", "-XX:G1PeriodicGCInterval=20000", "-XX:G1PeriodicGCSystemLoadThreshold=0")
         jvmArgs("-Dbitchord.version=$appVersion")
+        if (hostIsLinux) jvmArgs("--add-opens=java.desktop/sun.awt.X11=ALL-UNNAMED")
         if (desktopModuleIndexUrl.isNotBlank()) {
             jvmArgs("-Dbitchord.module.index=$desktopModuleIndexUrl")
         }

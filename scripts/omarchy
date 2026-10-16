@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+# Build and install the JVM desktop application, without an Android SDK.
+set -euo pipefail
+project_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+data_home="${XDG_DATA_HOME:-$HOME/.local/share}"
+bin_home="${BITCHORD_BIN_HOME:-$HOME/.local/bin}"
+app_home="$data_home/bitchord/app"
+
+find_java() {
+    if [[ -z "${JAVA_HOME:-}" ]]; then
+        for candidate in /usr/lib/jvm/java-21-openjdk "$HOME/.local/share/bitchord/jdk-21"; do
+            if [[ -x "$candidate/bin/javac" ]]; then
+                export JAVA_HOME="$candidate"
+                break
+            fi
+        done
+    fi
+    local java_bin="${JAVA_HOME:+$JAVA_HOME/bin/}java"
+    if ! command -v "$java_bin" >/dev/null; then
+        echo 'Java 21 JDK required. On Omarchy: sudo pacman -S jdk21-openjdk' >&2
+        exit 1
+    fi
+    local version
+    version="$("$java_bin" -version 2>&1)"
+    if [[ ! "$version" =~ version\ \"21\. ]]; then
+        echo 'Select Java 21 with JAVA_HOME=/usr/lib/jvm/java-21-openjdk.' >&2
+        exit 1
+    fi
+}
+
+build() {
+    if [[ "$(uname -s)" != Linux || "$(uname -m)" != x86_64 ]]; then
+        echo "The Omarchy build currently supports Linux x86_64." >&2
+        exit 1
+    fi
+    find_java
+    cd "$project_dir"
+    ./gradlew -Pbitchord.android=false :shared:jvmTest :sharedUi:jvmTest :desktopApp:test :desktopApp:createDistributable --console=plain
+}
+
+install_app() {
+    local image="$project_dir/desktopApp/build/compose/binaries/main/app/BitChord"
+    [[ -x "$image/bin/BitChord" ]] || { echo 'Build first: ./scripts/omarchy build' >&2; exit 1; }
+    mkdir -p "$data_home/bitchord" "$bin_home" "$data_home/applications" "$data_home/icons/hicolor/512x512/apps"
+    # Stage a complete replacement so old dependency jars cannot survive an upgrade.
+    local stage
+    stage="$(mktemp -d "$data_home/bitchord/.install.XXXXXX")"
+    cp -a "$image/." "$stage/"
+    if [[ -e "$app_home" ]]; then
+        mv "$app_home" "$stage.previous"
+    fi
+    mv "$stage" "$app_home"
+    if [[ -e "$stage.previous" ]]; then rm -rf -- "$stage.previous"; fi
+    cat > "$bin_home/bitchord" <<'LAUNCHER'
+#!/usr/bin/env bash
+set -euo pipefail
+export _JAVA_AWT_WM_NONREPARENTING=1
+# Match the desktop entry and MPRIS identity for launcher grouping under XWayland.
+exec "${XDG_DATA_HOME:-$HOME/.local/share}/bitchord/app/bin/BitChord" "$@"
+LAUNCHER
+    chmod +x "$bin_home/bitchord"
+    cp "$project_dir/desktopApp/packaging/icons/AppIcon.png" "$data_home/icons/hicolor/512x512/apps/bitchord.png"
+    # Desktop Exec uses its own quoting grammar; escape reserved characters.
+    local exec_path="$bin_home/bitchord"
+    exec_path="${exec_path//\\/\\\\}"
+    exec_path="${exec_path//\"/\\\"}"
+    exec_path="${exec_path//\$/\\\$}"
+    exec_path="${exec_path//\`/\\\`}"
+    exec_path="${exec_path//%/%%}"
+    cat > "$data_home/applications/bitchord.desktop" <<DESKTOP
+[Desktop Entry]
+Type=Application
+Name=BitChord
+Comment=Music, playlists and synchronized lyrics
+Exec="$exec_path"
+Icon=bitchord
+Terminal=false
+Categories=AudioVideo;Audio;Player;
+StartupWMClass=BitChord
+Keywords=Music;YouTube;Playlists;
+DESKTOP
+    if command -v update-desktop-database >/dev/null; then update-desktop-database "$data_home/applications"; fi
+    echo "Installed BitChord. Launch it from the app menu or $bin_home/bitchord"
+}
+
+case "${1:-help}" in
+    build) build ;;
+    install) install_app ;;
+    setup) build; install_app ;;
+    run) find_java; cd "$project_dir"; export _JAVA_AWT_WM_NONREPARENTING=1; ./gradlew -Pbitchord.android=false :desktopApp:run ;;
+    *) echo 'Usage: ./scripts/omarchy {build|install|setup|run}' ;;
+esac

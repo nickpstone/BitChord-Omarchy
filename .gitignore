@@ -44,3 +44,6 @@ keystore.properties
 # AI agent configuration
 AGENTS.md
 /output/
+
+# Python installer checks
+__pycache__/

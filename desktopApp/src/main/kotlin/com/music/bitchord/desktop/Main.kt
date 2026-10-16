@@ -27,6 +27,7 @@ import kotlin.math.roundToInt
 import org.jetbrains.compose.resources.painterResource
 
 fun main() {
+    DesktopLinuxIntegration.install()
     // Before any WebView exists, so the sign-in window can start over with an empty jar.
     DesktopWebCookies.install()
     DesktopWindowVisibility.install()
