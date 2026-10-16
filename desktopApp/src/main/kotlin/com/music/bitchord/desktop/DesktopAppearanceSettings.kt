@@ -14,6 +14,25 @@ internal object DesktopAppearanceSettings {
     private fun flag(key: String, default: Boolean) =
         MutableStateFlow(DesktopPersistence().boolean(key, default))
 
+    const val DEFAULT_FONT_SIZE_PERCENT = 125
+    const val MIN_FONT_SIZE_PERCENT = 100
+    const val MAX_FONT_SIZE_PERCENT = 150
+    private const val KEY_FONT_SIZE_PERCENT = "font_size_percent"
+
+    private val _fontSizePercent = MutableStateFlow(
+        DesktopPersistence().int(KEY_FONT_SIZE_PERCENT, DEFAULT_FONT_SIZE_PERCENT)
+            .coerceIn(MIN_FONT_SIZE_PERCENT, MAX_FONT_SIZE_PERCENT),
+    )
+
+    /** Scales all sp text, including shared screens and explicitly sized labels. */
+    val fontSizePercent: StateFlow<Int> = _fontSizePercent
+
+    fun setFontSizePercent(value: Int) {
+        val percent = value.coerceIn(MIN_FONT_SIZE_PERCENT, MAX_FONT_SIZE_PERCENT)
+        DesktopPersistence().saveInt(KEY_FONT_SIZE_PERCENT, percent)
+        _fontSizePercent.value = percent
+    }
+
     private val _reduceAnimation = flag(KEY_REDUCE_ANIMATION, false)
     private val _reduceDynamicBlur = flag(KEY_REDUCE_DYNAMIC_BLUR, false)
     private val _hideVolumeBar = flag(KEY_HIDE_VOLUME_BAR, false)

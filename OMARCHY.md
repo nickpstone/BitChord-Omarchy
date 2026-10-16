@@ -45,6 +45,7 @@ The source bundle is `desktopApp/build/compose/binaries/main/app/BitChord`. For 
 - MPRIS uses `org.mpris.MediaPlayer2.bitchord`. Existing Omarchy media keys and `playerctl --player=bitchord play-pause` can control it.
 - The tray supports returning to the window while playback continues. Closing behavior depends on whether the tray is available.
 - Startup does not check upstream releases or display an update prompt.
+- Text starts at 125% size. Open Settings → Appearance → Font size to choose 100–150%; changes apply immediately and persist after restarting.
 - No Hyprland configuration or keybindings are changed.
 
 The existing desktop features include music browsing and search, local music, playlists, downloads, lyrics, account integrations, audio controls, and source modules. Network-dependent features still depend on their upstream services and any required account or module configuration.

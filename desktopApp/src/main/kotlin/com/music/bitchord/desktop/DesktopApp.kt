@@ -234,6 +234,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
@@ -5867,6 +5868,40 @@ private fun DesktopSettingsScreen(
             }
             if (section == DesktopSettingsSection.APPEARANCE) item {
                 SettingsGroup(DesktopStrings["appearance", "Appearance"]) {
+                    val fontSizePercent by DesktopAppearanceSettings.fontSizePercent.collectAsState()
+                    val fontSizeTitle = DesktopStrings["d_font_size", "Font size"]
+                    val fontSizeSubtitle = DesktopStrings[
+                        "d_font_size_subtitle", "Applies immediately throughout the app and is saved for next time.",
+                    ]
+                    if (settingsRowVisible(fontSizeTitle, fontSizeSubtitle)) {
+                        Column(Modifier.fillMaxWidth().padding(vertical = 10.dp)) {
+                            Row(
+                                Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Text(fontSizeTitle, style = MaterialTheme.typography.bodyLarge)
+                                Text("$fontSizePercent%", style = MaterialTheme.typography.bodyLarge)
+                            }
+                            Text(fontSizeSubtitle, color = DesktopSecondary, style = MaterialTheme.typography.bodySmall)
+                            DesktopBareSlider(
+                                value = fontSizePercent.toFloat(),
+                                onValueChange = { DesktopAppearanceSettings.setFontSizePercent((it / 5f).roundToInt() * 5) },
+                                valueRange = DesktopAppearanceSettings.MIN_FONT_SIZE_PERCENT.toFloat()..
+                                    DesktopAppearanceSettings.MAX_FONT_SIZE_PERCENT.toFloat(),
+                                steps = 9,
+                                modifier = Modifier.semantics {
+                                    contentDescription = fontSizeTitle
+                                    stateDescription = "$fontSizePercent%"
+                                },
+                            )
+                            TextButton(onClick = {
+                                DesktopAppearanceSettings.setFontSizePercent(DesktopAppearanceSettings.DEFAULT_FONT_SIZE_PERCENT)
+                            }) {
+                                Text(DesktopStrings["d_font_size_reset", "Reset to recommended"])
+                            }
+                        }
+                    }
                     val reduceDynamicBlur by DesktopAppearanceSettings.reduceDynamicBlur.collectAsState()
                     SettingsToggle(
                         DesktopStrings["reduce_dynamic_blur", "Reduce dynamic blur"],

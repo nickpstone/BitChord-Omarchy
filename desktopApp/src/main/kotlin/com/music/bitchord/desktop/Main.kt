@@ -15,6 +15,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
@@ -176,7 +178,13 @@ private fun desktopMain() = application {
                 close = { if (DesktopWindowVisibility.onCloseRequest()) exitApplication() },
             )
         }
+        val fontSizePercent by DesktopAppearanceSettings.fontSizePercent.collectAsState()
+        val density = LocalDensity.current
+        val textDensity = remember(density, fontSizePercent) {
+            Density(density.density, density.fontScale * fontSizePercent / 100f)
+        }
         CompositionLocalProvider(
+            LocalDensity provides textDensity,
             LocalDesktopWindowActions provides actions,
             LocalDesktopWindowScope provides this,
         ) {
