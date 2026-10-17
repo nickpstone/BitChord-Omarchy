@@ -27,6 +27,12 @@ jobs:
           distribution: temurin
           java-version: '21'
       - uses: gradle/actions/setup-gradle@v4
+      # The bundled FFmpeg links against these; the slimmer ARM runner image lacks them.
+      - name: FFmpeg runtime libraries (arm64)
+        if: matrix.arch == 'arm64'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libva2 libva-drm2 libdrm2 libpulse0 libxcb1 libxcb-shm0
       - name: Installer checks
         run: |
           bash -n scripts/omarchy
