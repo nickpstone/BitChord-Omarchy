@@ -11,7 +11,15 @@ permissions:
 
 jobs:
   linux-desktop:
-    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runner: ubuntu-22.04
+          - arch: arm64
+            runner: ubuntu-22.04-arm
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -26,9 +34,9 @@ jobs:
       - name: Build and test without Android
         run: ./scripts/omarchy build
       - name: Preserve executable permissions in archive
-        run: tar -czf BitChord-Omarchy-linux-x86_64.tar.gz -C desktopApp/build/compose/binaries/main/app BitChord
+        run: tar -czf BitChord-Omarchy-linux-${{ matrix.arch }}.tar.gz -C desktopApp/build/compose/binaries/main/app BitChord
       - uses: actions/upload-artifact@v4
         with:
-          name: BitChord-Omarchy-linux-x86_64
-          path: BitChord-Omarchy-linux-x86_64.tar.gz
+          name: BitChord-Omarchy-linux-${{ matrix.arch }}
+          path: BitChord-Omarchy-linux-${{ matrix.arch }}.tar.gz
           if-no-files-found: error

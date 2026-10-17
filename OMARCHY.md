@@ -2,7 +2,7 @@
 
 This fork uses the existing Kotlin/Compose desktop application. Its audio engine uses FFmpeg and Java Sound, with session-bus MPRIS controls and a StatusNotifier tray icon. Omarchy runs its AWT window through XWayland. This is a Linux desktop application, not an Android emulator or web wrapper; it does not yet use a native Wayland window backend.
 
-The current Linux native dependencies target x86_64. ARM64 packaging is not included in this adaptation.
+Linux x86_64 and ARM64 (aarch64, including Apple Silicon Macs running Asahi Linux) are both supported. The build selects the matching FFmpeg, JavaFX and Skiko natives for the host. On ARM64, JavaFX is 21.0.12, because Maven Central only carries `linux-aarch64` JavaFX jars from 21.0.11 onwards; x86_64 stays on 21.0.10.
 
 ## Build and install
 
@@ -81,3 +81,12 @@ Verified locally on Omarchy on 2026-10-16:
 - Hyprland reported class `BitChord` with XWayland enabled; the session bus reported MPRIS identity `BitChord` and playback status `Stopped`.
 
 Account sign-in and playback through the physical speakers were not manually verified. `playerctl` was not installed on the verification machine; MPRIS was checked directly with `busctl`.
+
+ARM64 verified locally on Omarchy (Asahi Linux, MacBook Air M2, 16K pages) on 2026-10-17:
+
+- The same 46 shared data, 34 shared UI, and 342 desktop tests passed, with no failures or skips.
+- The packaged launcher and all bundled native libraries are aarch64.
+- The installed desktop entry passed `desktop-file-validate`.
+- The packaged app launched in a Hyprland window via XWayland, the JavaFX WebKit PoToken setup completed, and the session bus reported MPRIS identity `org.mpris.MediaPlayer2.bitchord`.
+
+Account sign-in and audio playback were not manually verified on ARM64.

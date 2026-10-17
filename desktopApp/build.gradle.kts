@@ -34,7 +34,7 @@ val javacppVersion = "1.5.12"
 val ffmpegVersion = "7.1.1-$javacppVersion"
 val nativeClassifier = when (targetOs) {
     "windows" -> "windows-x86_64"
-    "linux" -> "linux-x86_64"
+    "linux" -> if (isArm64) "linux-arm64" else "linux-x86_64"
     "macos" -> if (isArm64) "macosx-arm64" else "macosx-x86_64"
     else -> error("BitChord desktop supports Linux, Windows, and macOS only")
 }
@@ -74,10 +74,12 @@ dependencies {
     val javafxClassifier = when (targetOs) {
         "windows" -> "win"
         "macos" -> if (isArm64) "mac-aarch64" else "mac"
-        else -> "linux"
+        else -> if (isArm64) "linux-aarch64" else "linux"
     }
+    // Maven Central only carries linux-aarch64 JavaFX jars from 21.0.11 onwards.
+    val javafxVersion = if (targetOs == "linux" && isArm64) "21.0.12" else "21.0.10"
     listOf("base", "graphics", "controls", "media", "web").forEach { module ->
-        implementation("org.openjfx:javafx-$module:21.0.10:$javafxClassifier")
+        implementation("org.openjfx:javafx-$module:$javafxVersion:$javafxClassifier")
     }
 
     // The shared player loads artwork through Coil, as the phone does.
@@ -109,7 +111,7 @@ dependencies {
         when (targetOs) {
             "windows" -> compose.desktop.windows_x64
             "macos" -> if (isArm64) compose.desktop.macos_arm64 else compose.desktop.macos_x64
-            else -> compose.desktop.linux_x64
+            else -> if (isArm64) compose.desktop.linux_arm64 else compose.desktop.linux_x64
         }
     )
 

@@ -29,8 +29,8 @@ find_java() {
 }
 
 build() {
-    if [[ "$(uname -s)" != Linux || "$(uname -m)" != x86_64 ]]; then
-        echo "The Omarchy build currently supports Linux x86_64." >&2
+    if [[ "$(uname -s)" != Linux || ! "$(uname -m)" =~ ^(x86_64|aarch64)$ ]]; then
+        echo "The Omarchy build currently supports Linux x86_64 and aarch64." >&2
         exit 1
     fi
     find_java
